@@ -2,7 +2,7 @@ import "./App.css";
 import React, { useEffect, useState } from "react";
 import web3 from "web3";
 import { ethers } from "ethers";
-import { Alert, Button, Placeholder } from "react-bootstrap";
+import { Alert, Button, Card, Spinner } from "react-bootstrap";
 import { gameContractAbi, gameContractAddress } from "./gameContractInfo";
 
 function App() {
@@ -79,19 +79,17 @@ function App() {
       gameContractAbi,
       signer
     );
-    console.log("Play the game");
     setSmartContract(smartContract);
 
     await smartContract.playGame();
   };
 
-  // Function to start listening to events#
+  // Function to start listening to events
   useEffect(() => {
     if (smartContract) {
-      smartContract.on(
+      smartContract.once(
         "Participated",
         (lastParticipant, lastNumber, lastRandom, winner) => {
-          console.log(lastParticipant, lastNumber, lastRandom, winner);
           setParticipated((currentParticipated) => [
             ...currentParticipated,
             {
@@ -126,18 +124,35 @@ function App() {
 
           {participated.length > 0 ? (
             <div className="m-4">
-              {participated.map((p, i) => (
-                <div key={i}>
-                  <p>Participant: {p.lastParticipant}</p>
-                  {/* <p>Last Number: {p.lastNumber}</p>
-                  <p>Last Random: {p.lastRandom}</p> 
-                  <p>Winner: {p.winner}</p> */}
-                </div>
+              {[...participated].reverse().map((p, i) => (
+                <Card
+                  className="m-3"
+                  key={i}
+                  border={i === 0 ? "success" : "secondary"}
+                >
+                  {i === 0 && (
+                    <Card.Header className="bg-success lead lead-text text-white">
+                      Last Game
+                    </Card.Header>
+                  )}
+                  <Card.Body>
+                    <p>Participant: {p.lastParticipant}</p>
+                    <p>Last Number: {p.lastNumber.toNumber()}</p>
+                    <p>Last Random: {p.lastRandom.toNumber()}</p>
+                    <p>Winner: {p.winner ? "yes" : "no"}</p>
+                  </Card.Body>
+                </Card>
               ))}
             </div>
           ) : (
             <div className="m-4">
-              Start the Game by clicking on the "Play Game" Button
+              {loading ? (
+                <Spinner animation="border" />
+              ) : (
+                <span>
+                  Start the Game by clicking on the "Play Game" Button
+                </span>
+              )}
             </div>
           )}
         </div>
